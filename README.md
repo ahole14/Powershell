@@ -1,4 +1,3 @@
 Powershell
 ==========
-Remove ccmcache
-deletes the content of c:\windows\ccmcache
+Remove ccmcache - deletes the content of c:\windows\ccmcache
