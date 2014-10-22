@@ -1,0 +1,16 @@
+function Delete-CCMCache {
+
+    param (
+        [string]$computername
+    )
+
+    Write-Output "Please wait connecting to $computername and deleting files"
+    Invoke-Command -ComputerName $computername -ScriptBlock {Get-ChildItem c:\windows\ccmcache | Remove-Item -Recurse -force}
+
+}#end function
+
+
+$response = Read-Host "Enter a computername"
+
+Delete-CCMCache -computername $response
+Write-Output "Process Complete"
