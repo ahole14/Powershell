@@ -1,0 +1,18 @@
+function Get-UserInfo {
+
+    param ([string]$Username)
+
+
+    Get-ADUser $Username -Properties * | select AccountExpirationDate, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName 
+
+   
+}#end function
+
+$response = Read-Host "Please Enter Username"
+
+Get-UserInfo -Username $response
+
+Write-Output "Finished"
+
+Read-Host -Prompt "Press Enter to exit" 
+
