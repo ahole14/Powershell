@@ -5,14 +5,34 @@ function Get-UserInfo {
 
     Get-ADUser $Username -Properties * | select AccountExpirationDate, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName 
 
+    Write-Output "Finished"
+    
+    pause
+
+    cls
    
 }#end function
 
-$response = Read-Host "Please Enter Username"
 
-Get-UserInfo -Username $response
 
-Write-Output "Finished"
 
-Read-Host -Prompt "Press Enter to exit" 
+$flag = $false
+cls
 
+do {
+    
+
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Enter username `n `t `t 2. Quit"
+
+    $Response = Read-Host "Enter Username or Quit"
+
+    if ($response -eq 'Quit') {
+        exit
+    } else {
+        Get-UserInfo -Username $response
+    }
+
+
+} while ($flag -eq $false)
+
+write-output "you chose: $response"
