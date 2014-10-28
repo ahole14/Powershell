@@ -3,11 +3,37 @@ function Get-UserInfo {
     param ([string]$Username)
 
 
-    Get-ADUser $Username -Properties * | select AccountExpirationDate, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName 
+    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName 
 
-    Write-Output "Finished"
     
-    pause
+    write-host -ForegroundColor Cyan " `n Options: `n `t `t 1. Reset Password `n `t `t 2. Set Expiry Date `n `t `t 3. Quit"
+
+    $Response = Read-Host "Choice"
+
+    if ($response -eq '1') {
+        Set-ADAccountPassword $Username -NewPassword $newPassword -Reset
+
+        cls
+
+        Write-Output "Password Reset"
+
+        pause
+    }
+    if ($Response -eq '2') {
+        
+        $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+
+        Set-ADAccountExpiration -Identity $Username -DateTime $newdate
+
+        Write-Output "Expiry Date Changed"
+
+        pause
+    }
+    
+    if ($Response -eq '3') {
+
+    }
+
 
     cls
    
@@ -21,8 +47,7 @@ cls
 
 do {
     
-
-    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Enter username `n `t `t 2. Quit"
+    #write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Enter username `n `t `t 2. Quit"
 
     $Response = Read-Host "Enter Username or Quit"
 
@@ -35,4 +60,4 @@ do {
 
 } while ($flag -eq $false)
 
-write-output "you chose: $response"
+
