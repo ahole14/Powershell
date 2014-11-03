@@ -56,7 +56,13 @@ do {
 
     if ($response -eq 'Quit') {
         exit
-    } else {
+    }
+    
+    if ($Response -eq 'q') {
+        exit
+    }
+    
+     else {
         Get-UserInfo -Username $response
     }
 
