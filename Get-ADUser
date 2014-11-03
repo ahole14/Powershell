@@ -18,6 +18,9 @@ function Get-UserInfo {
         Write-Output "Password Reset"
 
         pause
+
+        Get-UserInfo -Username $username
+
     }
     if ($Response -eq '2') {
         
