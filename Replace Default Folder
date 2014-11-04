@@ -1,0 +1,48 @@
+function Replace-Default {
+
+    param (
+        [string]$computername
+    )
+
+    $computername = Read-Host "Enter Computer Name"
+
+    Write-Output "Please wait connecting to $computername and working magic"
+    Invoke-Command -ComputerName $computername -ScriptBlock {Get-Item C:\Users\Default -force | Rename-Item -NewName Default.old}
+
+    copy-item -Path "C:\YOUR FOLDER LOCATION\" -Destination \\$computername\C$\Users -Recurse -Force
+
+    (Get-Item \\$computername\c$\Users\Default -Force).Attributes = "Hidden","ReadOnly" 
+    (Get-Item \\$computername\c$\Users\Default\AppData -Force).Attributes = "Hidden","ReadOnly"
+    
+    
+    Write-Output "Process Complete"
+   
+    Pause
+
+}#end function
+
+
+
+
+
+
+$flag = $false
+
+
+do {
+    cls
+
+    write-host -ForegroundColor Magenta " `n Please choose an option: `n `n `t `t 1. Replace Default Folder `n `t `t 2. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 2)"
+
+    switch ($cmdSelection) {
+        1 {Replace-Default}
+        2 {Exit}
+
+    }
+
+
+} while (!($flag))
+
+
