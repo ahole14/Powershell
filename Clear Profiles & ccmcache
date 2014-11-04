@@ -247,13 +247,32 @@ function Delete-CCMCache {
     $computername = Read-Host "Enter Computer Name"
 
     Write-Output "Please wait connecting to $computername and deleting files"
-    Invoke-Command -ComputerName $computername -ScriptBlock {Get-ChildItem c:\windows\ccmcache | Remove-Item -Recurse -force}
+    Invoke-Command -ComputerName $computername -ScriptBlock ${function:Resize-CCMcache} 
 
     Write-Output "Process Complete"
    
     Pause
 
 }#end function
+
+
+function Resize-CCMcache {
+
+    param (
+        [string]$computername = 'localhost'
+    )
+          
+    
+    $ccm = New-Object -ComObject uiresource.uiresourcemgr
+        
+    $cachesize = $ccm.GetCacheInfo().totalsize
+              
+    ($ccm.GetCacheInfo()).totalsize = 1
+
+    ($ccm.GetCacheInfo()).totalsize = $cachesize
+        
+
+    }
 
 
 
