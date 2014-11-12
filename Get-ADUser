@@ -3,10 +3,10 @@ function Get-UserInfo {
     param ([string]$Username)
 
 
-    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName 
+    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName, memberof 
 
     
-    write-host -ForegroundColor Cyan " `n Options: `n `t `t 1. Reset Password `n `t `t 2. Set Expiry Date `n `t `t 3. Quit"
+    write-host -ForegroundColor Cyan " `n Options: `n `t `t 1. Reset Password `n `t `t 2. Set Expiry Date `n `t `t 3. Enable Internet (Temp Accounts Only) `n `t `t 4. Disable Internet (Temp Accounts Only) `n `t `t 5. Quit"
 
     $Response = Read-Host "Choice"
 
@@ -28,14 +28,48 @@ function Get-UserInfo {
 
         Set-ADAccountExpiration -Identity $Username -DateTime $newdate
 
+        cls
+
         Write-Output "Expiry Date Changed"
 
         pause
+
+        Get-UserInfo -Username $username
     }
     
     if ($Response -eq '3') {
 
+    Add-ADGroupMember -Identity internet-enabledastemps -Members $Username
+
+    cls
+
+    Write-Output "Internet Enabled"
+
+    Pause
+
+    Get-UserInfo -Username $username
+
     }
+
+    if ($Response -eq '4') {
+
+    Remove-ADGroupMember -Identity internet-enabledastemps -Members $Username
+
+    cls
+
+    Write-Output "Internet Disabled"
+
+    Pause
+
+    Get-UserInfo -Username $username
+
+    }
+
+    if ($Response -eq '5') {
+
+    }
+
+
 
 
     cls
@@ -52,7 +86,7 @@ do {
     
     #write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Enter username `n `t `t 2. Quit"
 
-    $Response = Read-Host "Enter Username or Quit"
+    $Response = Read-Host "Enter Username or Q to Quit"
 
     if ($response -eq 'Quit') {
         exit
@@ -61,6 +95,14 @@ do {
     if ($Response -eq 'q') {
         exit
     }
+
+    if ($Response -eq 'temp') {
+
+    Invoke-Item "\\servername\filename.xls"
+
+    cls
+
+    }
     
      else {
         Get-UserInfo -Username $response
@@ -68,5 +110,4 @@ do {
 
 
 } while ($flag -eq $false)
-
 
