@@ -70,7 +70,7 @@ do {
 
     write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Open Temp Account List `n `t `t 2. Enter Usernames `n `t `t 3. Set Password `n `t `t 4. Set Expiry `n `t `t 5. Quit"
 
-    $cmdSelection = Read-Host "(1 - 3)"
+    $cmdSelection = Read-Host "(1 - 5)"
 
     switch ($cmdSelection) {
         1 {Invoke-Item "\\YOUR LOCATION\TEMP Accounts.xls"}
