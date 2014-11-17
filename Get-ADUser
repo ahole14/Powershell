@@ -96,13 +96,6 @@ do {
         exit
     }
 
-    if ($Response -eq 'temp') {
-
-    Invoke-Item "\\servername\filename.xls"
-
-    cls
-
-    }
     
      else {
         Get-UserInfo -Username $response
