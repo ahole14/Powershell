@@ -1,0 +1,85 @@
+function User-Names{
+
+    cls
+    
+    Invoke-Item -Path '\\YOUR LOCATION\Usernames.txt'
+
+    Write-Host "`n Enter Usernames into the opened file like so: `n TEMP1001 `n TEMP1002 `n TEM1003 `n TEMP1004 `n TEMP1005 `n `n N.B. Remember to save the file before continuing `n"
+
+    pause
+
+}
+
+
+
+function Multi-Pass{
+
+cls
+
+    $users = Get-Content -Path '\\YOUR LOCATION\Usernames.txt'
+
+    $pass = Read-Host "Enter Password"
+
+    $password = ConvertTo-SecureString -AsPlainText "$pass" -Force
+
+
+ForEach ($user in $users)
+
+{
+
+    
+    Get-ADUser $user | Set-ADAccountPassword -NewPassword $password -Reset
+
+    Write-Host "Password has been reset for the user: $user"
+
+    pause
+
+}
+
+}
+
+function Multi-Expiry{
+
+cls
+
+    $users = Get-Content -Path '\\YOUR LOCATION\Usernames.txt'
+
+    $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+
+    
+ForEach ($user in $users)
+
+{
+
+    
+    Get-ADUser $user | Set-ADAccountExpiration -DateTime $newdate
+
+    Write-Host "Expiry Date has been changed for the user: $user"
+
+    pause
+
+}
+}
+
+
+$flag = $false
+
+
+do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Open Temp Account List `n `t `t 2. Enter Usernames `n `t `t 3. Set Password `n `t `t 4. Set Expiry `n `t `t 5. Quit"
+
+    $cmdSelection = Read-Host "(1 - 3)"
+
+    switch ($cmdSelection) {
+        1 {Invoke-Item "\\YOUR LOCATION\TEMP Accounts.xls"}
+        2 {User-Names}
+        3 {Multi-Pass}
+        4 {Multi-Expiry}
+        5 {exit}
+
+    }
+
+
+} while (!($flag))
