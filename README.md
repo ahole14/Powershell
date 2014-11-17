@@ -7,3 +7,5 @@ Get-ADUser - Gets AD User info and gives options on changing password and accoun
 Clear Profiles & ccmcache - Gives menu options for removing profiles and ccmcache on remote machine
 
 Repalce Default Folder - Remotley Renames C:\Users\Default to Default.old and then repalces it with another copy of the folder
+
+Multi Account Change - Changes the password and expiry date on multi accounts in a text document
