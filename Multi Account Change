@@ -1,85 +1,127 @@
+function Read-Names {
+    $users = Get-Content -Path '\\YOUR LOCATION\Usernames.txt'
+    return $users
+}
+
+
 function User-Names{
 
     cls
     
     Invoke-Item -Path '\\YOUR LOCATION\Usernames.txt'
 
-    Write-Host "`n Enter Usernames into the opened file like so: `n TEMP1001 `n TEMP1002 `n TEM1003 `n TEMP1004 `n TEMP1005 `n `n N.B. Remember to save the file before continuing `n"
+    Write-Host "`n Enter Usernames into the opened file like so: `n TEMP1001 `n TEMP1002 `n TEMP1003 `n TEMP1004 `n TEMP1005 `n `n N.B. Remember to save the file before continuing `n"
 
     pause
 
 }
 
-
-
 function Multi-Pass{
+    param (
+        $users
+    )
 
 cls
-
-    $users = Get-Content -Path '\\YOUR LOCATION\Usernames.txt'
 
     $pass = Read-Host "Enter Password"
 
     $password = ConvertTo-SecureString -AsPlainText "$pass" -Force
 
 
-ForEach ($user in $users)
+    ForEach ($user in $users)
 
-{
+    {
 
-    
-    Get-ADUser $user | Set-ADAccountPassword -NewPassword $password -Reset
+        Set-ADAccountPassword -Identity $user -NewPassword $password -Reset
 
-    Write-Host "Password has been reset for the user: $user"
+        Write-Host "Password has been reset for the user: $user"
 
-    pause
-
-}
-
+     }
+         pause
 }
 
 function Multi-Expiry{
+    param (
+        $users
+    )
 
 cls
 
-    $users = Get-Content -Path '\\YOUR LOCATION\Usernames.txt'
+   $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+       
+    ForEach ($user in $users)
 
-    $newdate = Read-Host "Enter Date i.e. 10/12/2014"
-
-    
-ForEach ($user in $users)
-
-{
+    {
 
     
-    Get-ADUser $user | Set-ADAccountExpiration -DateTime $newdate
+        Set-ADAccountExpiration -Identity $user -DateTime $newdate
+    
+        Write-Host "Expiry Date has been changed for the user: $user"
 
-    Write-Host "Expiry Date has been changed for the user: $user"
-
-    pause
-
+    }
+        pause
 }
+
+function Enable-Internet {
+    param (
+        $users
+    )
+
+cls
+
+
+    ForEach ($user in $users)
+
+    {
+
+        if ( get-aduser -Filter {(samaccountname -eq $user -and memberof -eq "GROUP NAME")} ) {
+    write-output "User $user already in group!"
+} else {
+    Add-ADGroupMember -Identity internet-enabledastemps -Members $user
+    write-output "Internet Enabled for the user: $user"
 }
+    }
+        pause
+}
+
+function Disable-Internet {
+    param (
+        $users
+    )
+
+
+cls
+
+    ForEach ($user in $users)
+
+    {    
+        Remove-ADGroupMember -Identity internet-enabledastemps -Members $user
+
+        Write-Host "internet Disabled for the user: $user"
+                
+    }
+        pause
+}
+
 
 
 $flag = $false
 
-
 do {
     cls
 
-    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Open Temp Account List `n `t `t 2. Enter Usernames `n `t `t 3. Set Password `n `t `t 4. Set Expiry `n `t `t 5. Quit"
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t 1. Open Temp Account List & Enter Usernames `n `t `t 2. Set Password `n `t `t 3. Set Expiry `n `t `t 4. Enable Internet `n `t `t 5. Disable Internet `n `t `t 6. Quit"
 
-    $cmdSelection = Read-Host "(1 - 5)"
+    $cmdSelection = Read-Host "(1 - 6)"
 
     switch ($cmdSelection) {
-        1 {Invoke-Item "\\YOUR LOCATION\TEMP Accounts.xls"}
-        2 {User-Names}
-        3 {Multi-Pass}
-        4 {Multi-Expiry}
-        5 {exit}
+        1 {Invoke-Item "\\YOUR LOCATION\TEMP Accounts.xls";User-Names}
+        2 {Multi-Pass -users (Read-Names)}
+        3 {Multi-Expiry -users (Read-Names)}
+        4 {Enable-Internet -users (Read-Names)}
+        5 {Disable-Internet -users (Read-Names)}
+        6 {exit}
 
     }
-
-
 } while (!($flag))
+
