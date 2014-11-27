@@ -1,0 +1,561 @@
+function User-Info {
+
+    function Get-UserInfo {
+
+    param ([string]$Username)
+    
+    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, EmployeeType, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName, memberof 
+
+    
+    write-host -ForegroundColor Cyan " `n Options: `n `t `t `t 1. Reset Password `n `t `t `t 2. Set Expiry Date `n `t `t `t 3. Enter Another Username `n `t `t `t 4. Main Menu `n `t `t `t 5. Exit"
+
+    $Response = Read-Host " `n (1 - 5)"
+
+    if ($response -eq '1') {
+        Set-ADAccountPassword $Username -NewPassword $newPassword -Reset
+
+        cls
+
+        Write-Output "Password Reset"
+
+        pause
+
+        Get-UserInfo -Username $username
+
+    }
+    if ($Response -eq '2') {
+        
+        $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+
+        Set-ADAccountExpiration -Identity $Username -DateTime $newdate
+
+        cls
+
+        Write-Output "Expiry Date Changed"
+
+        pause
+
+        Get-UserInfo -Username $username
+    }
+        
+    if ($Response -eq '3') {
+        
+    }
+
+    if ($Response -eq '4') {
+        List-Scripts
+    }
+
+    if ($Response -eq '5') {
+        exit
+    }
+        
+    cls
+   
+}
+
+    $flag = $false
+
+    cls
+
+    do {
+    
+        $Response = Read-Host "Enter Username or M to return to Main Menu"
+
+        if ($Response -eq 'M') {
+            List-Scripts
+        }
+          
+         else {
+            Get-UserInfo -Username $response
+        }
+
+
+   } while ($flag -eq $false)
+}
+
+function Temp-Accounts {
+
+    function Read-Names {
+    $users = Get-Content -Path '\\YOURPATH\Usernames.txt'
+    return $users
+}
+
+    function User-Names{
+
+    cls
+    
+    Invoke-Item -Path '\\YOURPATH\Usernames.txt'
+
+    Write-Host "`n Enter Usernames into the opened file like so: `n TEMP1001 `n TEMP1002 `n TEMP1003 `n TEMP1004 `n TEMP1005 `n `n N.B. Remember to save the file before continuing `n"
+
+    pause
+
+}
+
+    function Multi-Pass{
+    param (
+        $users
+    )
+
+    cls
+
+    $pass = Read-Host "Enter Password"
+
+    $password = ConvertTo-SecureString -AsPlainText "$pass" -Force
+
+
+    ForEach ($user in $users)
+
+    {
+
+        Set-ADAccountPassword -Identity $user -NewPassword $password -Reset
+
+        Write-Host "Password has been reset for the user: $user"
+
+     }
+         pause
+}
+
+    function Multi-Expiry{
+    param (
+        $users
+    )
+
+    cls
+
+   $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+       
+    ForEach ($user in $users)
+
+    {
+
+    
+        Set-ADAccountExpiration -Identity $user -DateTime $newdate
+    
+        Write-Host "Expiry Date has been changed for the user: $user"
+
+    }
+        pause
+}
+
+    function Enable-Internet {
+    param (
+        $users
+    )
+
+    cls
+
+    ForEach ($user in $users)
+
+    {
+
+        if ( get-aduser -Filter {(samaccountname -eq $user -and memberof -eq "GROUPNAME")} ) {
+    write-output "User $user already in group!"
+} else {
+    Add-ADGroupMember -Identity internet-enabledastemps -Members $user
+    write-output "Internet Enabled for the user: $user"
+}
+    }
+        pause
+}
+
+    function Disable-Internet {
+    param (
+        $users
+    )
+
+
+    cls
+
+    ForEach ($user in $users)
+
+    {    
+        Remove-ADGroupMember -Identity internet-enabledastemps -Members $user
+
+        Write-Host "internet Disabled for the user: $user"
+                
+    }
+        pause
+}
+
+
+    $flag = $false
+
+    do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t `t 1. Open Temp Account List & Enter Usernames `n `t `t `t 2. Set Password `n `t `t `t 3. Set Expiry `n `t `t `t 4. Enable Internet `n `t `t `t 5. Disable Internet `n `t `t `t 6. Main Menu `n `t `t `t 7. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 7)"
+
+    switch ($cmdSelection) {
+        1 {Invoke-Item "\\YOURPATH\TEMP Accounts.xls";User-Names}
+        2 {Multi-Pass -users (Read-Names)}
+        3 {Multi-Expiry -users (Read-Names)}
+        4 {Enable-Internet -users (Read-Names)}
+        5 {Disable-Internet -users (Read-Names)}
+        6 {List-Scripts}
+        7 {exit}
+    }
+} while (!($flag))
+}
+
+function CCMcache-Profiles {
+
+    function Delete-Profiles {
+
+    param (
+        [string]$computername
+    )
+
+    $computername = Read-Host "Enter Computer Name" 
+
+    Invoke-Command -ComputerName $computername -ScriptBlock {[CmdletBinding(DefaultParametersetName="ExcludedUsersFromCommandLine")]
+param(
+    [Parameter(Position=0,ValueFromPipeline=$true)]
+    $computerNames,
+    [Parameter(ParameterSetName="ExcludedUsersFromCommandLine")]
+    $excludedUsers,
+    [Parameter(ParameterSetName="ExcludedUsersFromFile")]
+    $excludedUsersInputFile,
+    [switch]
+    $whatIf,
+    [switch]
+    $confirm=$true,
+    [ValidateNotNullOrEmpty()]
+    [string]
+    $logFile="removeprofileslog.csv"
+)
+
+    Function Log-Message {
+    param(
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        $userProfile,
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $removalStatus
+    )
+
+    $currentDate = Get-Date
+    $dateString = $currentDate.toShortDateString()
+    $timeString = $currentDate.toShortTimeString()
+    
+    Add-Content $LogFile ($dateString + " " + `
+                            $timeString + "," + `
+                            $userProfile.computerName + "," + `
+                            $userProfile.accountName + "," + `
+                            $userProfile.SID + "," + `
+                            $userProfile.LocalPath + "," + `
+                            $(Convert-WMIDateStringToDate -dateString $userProfile.LastUseTime) + "," + `
+                            $removalStatus)
+}
+
+    Function Convert-WMIDateStringToDate {
+    param (
+        [parameter(Mandatory=$true)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        [string]
+        $dateString
+    )
+
+    if ($dateString) {
+        return [System.Management.ManagementDateTimeConverter]::ToDateTime($dateString)
+    }
+}
+
+    Function Get-UserProfiles {
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $computerName
+    )
+
+    return Get-WmiObject -class Win32_UserProfile -computername $computerName
+}
+
+    Function Get-AdUserForSid {
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $sid
+    )
+
+    try {
+        $userSid = New-Object System.Security.Principal.SecurityIdentifier($sid)
+        $user = $userSid.Translate([System.Security.Principal.NTAccount])
+        return $user.Value
+    } catch [System.Security.Principal.IdentityNotMappedException] {
+        return $null
+    }
+}
+
+    Function Get-LocalUserForSid {
+    param(
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $sid,
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        [string]
+        $computerName
+    )
+
+    try {
+        $user = Get-WmiObject win32_useraccount -Filter "SID='$sid' AND domain='$computerName'" -computername $computerName
+        return $user.Name
+    } catch {
+        return $null
+    }
+}
+
+    Function Update-ProfileWithAccountName {
+    param (
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        $userProfile,
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        $computerName
+    )
+  
+    $accountName = Get-AdUserForSid -sid $userProfile.SID
+    if(!$accountName) {
+        $accountName = Get-LocalUserForSid -sid $userProfile.SID -computerName $computerName
+    }
+ 
+    Add-Member -InputObject $userProfile -MemberType NoteProperty -Value $accountName -Name "accountName"
+    Add-Member -InputObject $userProfile -MemberType NoteProperty -Value $computerName -Name "computerName"
+    return $userProfile
+}
+
+    Function Should-AccountBeSpared {
+    param(
+        [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        [AllowEmptyString()]
+        $userProfile,
+        [Parameter(Mandatory=$true)]
+        [AllowNull()]
+        [array]
+        $accountNamesToBeSpared
+    )
+
+    if ($userProfile.accountName -ne $null) {
+        foreach ($name in $accountNamesToBeSpared) {
+            if (([string]::Compare($userProfile.accountName, $name, $true)) -eq 0) {
+                return $true
+            }
+        }
+    }
+    return $false
+}
+
+    Function Write-ProfileDetails {
+    param (
+        [parameter(Mandatory=$true)]
+        [ValidateNotNullOrEmpty()]
+        $userProfile
+    )
+
+    Write-Host "Computer:`t" $userProfile.computerName
+    Write-Host "SID:`t`t" $userProfile.SID
+    Write-Host "Account:`t" $userProfile.accountName
+    Write-Host "Local Path:`t" $userProfile.LocalPath
+    Write-Host "Last Use:`t" $(Convert-WMIDateStringToDate -dateString $userProfile.LastUseTime)
+}
+
+    Function Prompt-ForConfirmation {
+    Write-Host "`nAre you sure you want to remove profile?"
+    $answer = Read-Host "[Y] Yes, [N] No, [A] All: "
+    return $answer.toLower()
+}
+
+
+
+    if ($computerNames -eq $null) {
+    $computerNames = Hostname
+}
+
+    if ($confirm -eq $false) {
+    $answer = "a"
+}
+
+    if ($excludedUsersInputFile) {
+    $excludedUsers = Get-Content $excludedUsersInputFile
+}
+
+    foreach ($computerName in $computerNames) {
+    $allUserProfiles = Get-UserProfiles -computerName $computerName
+    
+    foreach ($userProfile in $allUserProfiles) {
+        $removalStatus = ""
+        $userProfile = Update-ProfileWithAccountName -userProfile $userProfile -computerName $computerName
+
+        if ($userProfile.Special -ne $true) {
+            Write-ProfileDetails $userProfile
+
+            if ((Should-AccountBeSpared -userProfile $userProfile -accountNamesToBeSpared $excludedUsers) -eq $true) {
+                $removalStatus = "Skipped: Account is in the exclusion list."
+            } else {
+                if ($userProfile.Loaded -eq $true) {
+                    $removalStatus = "Skipped: Profile in use."
+                } else {
+                    if ($confirm) {
+                        $answer = Prompt-ForConfirmation
+                        
+                        if ($answer.compareTo("a") -eq 0) {
+                            $confirm = $false
+                        }
+                    }
+
+                    if (($answer.compareTo("y") -eq 0) -or ($answer.compareTo("a") -eq 0))  {
+                        $removalStatus = "Removed"
+                        if ($whatIf -ne $true) {
+                            $userProfile.Delete()
+                        }
+                    } else {
+                       $removalStatus = "Skipped"
+                    }
+                }
+            }
+
+            if ($whatIf) {
+                $removalStatus = "What If - " + $removalStatus
+            }
+            Write-Host $removalStatus -Foreground Yellow
+            Log-Message $userProfile $removalStatus
+        }
+    }
+}
+}
+    pause
+
+}#end function
+
+    function Delete-CCMCache {
+
+    param (
+        [string]$computername
+    )
+
+    $computername = Read-Host "Enter Computer Name"
+
+    Write-Output "Please wait connecting to $computername and deleting files"
+    Invoke-Command -ComputerName $computername -ScriptBlock ${function:Resize-CCMcache} 
+
+    Write-Output "Process Complete"
+   
+    Pause
+
+}#end function
+
+    function Resize-CCMcache {
+
+    param (
+        [string]$computername = 'localhost'
+    )
+              
+    $ccm = New-Object -ComObject uiresource.uiresourcemgr
+        
+    $cachesize = $ccm.GetCacheInfo().totalsize
+              
+    ($ccm.GetCacheInfo()).totalsize = 1
+
+    ($ccm.GetCacheInfo()).totalsize = $cachesize
+        
+    }
+
+    $flag = $false
+
+    do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t `t 1. Delete Profiles `n `t `t `t 2. Delete ccmcache `n `t `t `t 3. Main Menu `n `t `t `t 4. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 4)"
+
+    switch ($cmdSelection) {
+        1 {Delete-Profiles}
+        2 {Delete-CCMCache}
+        3 {List-Scripts}
+        4 {exit}
+    }
+
+} while (!($flag))
+
+}
+
+function Default-Folder {
+
+    function Replace-Default {
+
+    param (
+        [string]$computername
+    )
+
+    $computername = Read-Host "Enter Computer Name"
+
+    Write-Output "Please wait connecting to $computername and working magic"
+    Invoke-Command -ComputerName $computername -ScriptBlock {Get-Item C:\Users\Default -force | Rename-Item -NewName Default.old}
+
+    copy-item -Path "S:\YOURPATH\Default" -Destination \\$computername\C$\Users -Recurse -Force
+
+    (Get-Item \\$computername\c$\Users\Default -Force).Attributes = "Hidden","ReadOnly" 
+    (Get-Item \\$computername\c$\Users\Default\AppData -Force).Attributes = "Hidden","ReadOnly"
+    
+    Write-Output "Process Complete"
+   
+    Pause
+
+}#end function
+
+    $flag = $false
+
+    do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Please choose an option: `n `t `t `t 1. Replace Default Folder `n `t `t `t 2. Main Menu `n `t `t `t 3. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 3)"
+
+    switch ($cmdSelection) {
+        1 {Replace-Default}
+        2 {List-Scripts}
+        3 {Exit}
+    }
+} while (!($flag))
+}
+
+
+
+function List-Scripts {
+
+$flag = $false
+
+do {
+    cls
+
+    Write-Host -ForegroundColor Yellow " `n Choose from the following: `n `t `t `t 1. Manage Users `n `t `t `t 2. Manage Temp Accounts `n `t `t `t 3. Clears Profiles & ccmcache `n `t `t `t 4. Replace Default Folder `n `t `t `t 5. Exit"
+
+    $cmdSelection = Read-Host " `n (1 - 5)"
+
+    switch ($cmdSelection) {
+        1. {User-Info}
+        2. {Temp-Accounts}
+        3. {CCMcache-Profiles}
+        4. {Default-Folder}
+        5. {exit}
+
+    }
+
+} while (!($flag))
+}
+
+List-Scripts
