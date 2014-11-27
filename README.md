@@ -9,3 +9,5 @@ Clear Profiles & ccmcache - Gives menu options for removing profiles and ccmcach
 Repalce Default Folder - Remotley Renames C:\Users\Default to Default.old and then repalces it with another copy of the folder
 
 Multi Account Change - Changes the password and expiry date on multi accounts in a text document
+
+Support Scripts - Incorporates Get-ADUser, Clear Profiles & ccmcache, Repalce Default Folder and Multi Account Change in one place to make life easier
