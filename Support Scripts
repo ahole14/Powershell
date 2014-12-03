@@ -4,7 +4,7 @@ function User-Info {
 
     param ([string]$Username)
     
-    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, EmployeeType, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, UserPrincipalName, memberof 
+    Get-ADUser $Username -Properties * | select AccountExpirationDate, Name, DisplayName, EmailAddress, msExchHideFromAddressLists, EmployeeNumber, EmployeeType, Enabled, HomeDirectory, PasswordExpired, PasswordLastSet, PasswordNeverExpires, UserPrincipalName, memberof 
 
     
     write-host -ForegroundColor Cyan " `n Options: `n `t `t `t 1. Reset Password `n `t `t `t 2. Set Expiry Date `n `t `t `t 3. Enter Another Username `n `t `t `t 4. Main Menu `n `t `t `t 5. Exit"
@@ -15,6 +15,20 @@ function User-Info {
         Set-ADAccountPassword $Username -NewPassword $newPassword -Reset
 
         cls
+
+        $Expire = Show-OHMessageBox -Message "Turn Password Expiry Off?" -Buttons YesNo 
+
+        if ($Expire -eq 'yes') {
+
+        Set-ADUser $Username -PasswordNeverExpires $true
+
+        }
+
+        if ($Expire -eq 'no') {
+
+        Set-ADUser $Username -PasswordNeverExpires $false
+
+        }
 
         Write-Output "Password Reset"
 
