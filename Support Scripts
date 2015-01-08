@@ -88,10 +88,10 @@ function User-Info {
    } while ($flag -eq $false)
 }
 
-function Temp-Accounts {
+function Multi-User {
 
-    function Read-Names {
-    $users = Get-Content -Path '\\YOURPATH\Usernames.txt'
+    function Read-Users {
+    $users = Get-Content -Path '\\YOUR PATH\Multi Usernames.txt'
     return $users
 }
 
@@ -99,7 +99,90 @@ function Temp-Accounts {
 
     cls
     
-    Invoke-Item -Path '\\YOURPATH\Usernames.txt'
+    Invoke-Item -Path '\\YOUR PATH\Multi Usernames.txt'
+
+    Write-Host "`n Enter Usernames into the opened file like so: `n ABC12345678 `n DEF12345678 `n GHI12345678 `n JKL12345678 `n MNO12345678 `n `n N.B. Remember to save the file before continuing `n"
+
+    pause
+
+}
+
+    function Multi-Pass{
+    param (
+        $users
+    )
+
+    cls
+
+    $pass = Read-Host "Enter Password"
+
+    $password = ConvertTo-SecureString -AsPlainText "$pass" -Force
+
+
+    ForEach ($user in $users)
+
+    {
+
+        Set-ADAccountPassword -Identity $user -NewPassword $password -Reset
+
+        Write-Host "Password has been reset for the user: $user"
+
+     }
+         pause
+}
+
+    function Multi-Expiry{
+    param (
+        $users
+    )
+
+    cls
+
+   $newdate = Read-Host "Enter Date i.e. 10/12/2014"
+       
+    ForEach ($user in $users)
+
+    {
+
+        Set-ADAccountExpiration -Identity $user -DateTime $newdate
+    
+        Write-Host "Expiry Date has been changed for the user: $user"
+
+    }
+        pause
+}
+
+    $flag = $false
+
+    do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Choose from the following: `n `t `t `t 1. Enter Usernames `n `t `t `t 2. Set Password `n `t `t `t 3. Set Expiry `n `t `t `t 4. Main Menu `n `t `t `t 5. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 7)"
+
+    switch ($cmdSelection) {
+        1 {User-Names}
+        2 {Multi-Pass -users (Read-Users)}
+        3 {Multi-Expiry -users (Read-Users)}
+        4 {List-Scripts}
+        5 {exit}
+    }
+} while (!($flag))
+}
+
+function Temp-Accounts {
+
+    function Read-Names {
+    $users = Get-Content -Path '\\YOUR PATH\Temp Accounts.txt'
+    return $users
+}
+
+    function User-Names{
+
+    cls
+    
+    Invoke-Item -Path '\\YOUR PATH\Temp Accounts.txt'
 
     Write-Host "`n Enter Usernames into the opened file like so: `n TEMP1001 `n TEMP1002 `n TEMP1003 `n TEMP1004 `n TEMP1005 `n `n N.B. Remember to save the file before continuing `n"
 
@@ -164,7 +247,7 @@ function Temp-Accounts {
 
     {
 
-        if ( get-aduser -Filter {(samaccountname -eq $user -and memberof -eq "GROUPNAME")} ) {
+        if ( get-aduser -Filter {(samaccountname -eq $user -and memberof -eq "CN=Internet-Enabled")} ) {
     write-output "User $user already in group!"
 } else {
     Add-ADGroupMember -Identity internet-enabledastemps -Members $user
@@ -204,7 +287,7 @@ function Temp-Accounts {
     $cmdSelection = Read-Host " `n (1 - 7)"
 
     switch ($cmdSelection) {
-        1 {Invoke-Item "\\YOURPATH\TEMP Accounts.xls";User-Names}
+        1 {Invoke-Item "\\YOUR PATH\TEMP Accounts.xls";User-Names}
         2 {Multi-Pass -users (Read-Names)}
         3 {Multi-Expiry -users (Read-Names)}
         4 {Enable-Internet -users (Read-Names)}
