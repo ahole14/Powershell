@@ -12,4 +12,4 @@ Multi Account Change - Changes the password and expiry date on multi accounts in
 
 Support Scripts - Incorporates Get-ADUser, Clear Profiles & ccmcache, Repalce Default Folder and Multi Account Change in one place to make life easier
 
-Computer Details - Gets a list of rooms then computer names in each room and runs a report on each computer to get HD & Memory information then outputs in to a CSV
+Computer Details - Gets a list of rooms then computer names in each room and runs a report on each computer to get HD & Memory information then outputs the information to a CSV
