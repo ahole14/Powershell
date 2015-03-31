@@ -1,0 +1,100 @@
+function Computer-Details {
+    
+    param([string]$room)
+
+function Get-Rooms {
+    
+    $rooms = Get-Content -Path C:\Your Location\Room List.txt
+
+    foreach ($room in $rooms){
+    
+        $computers = Get-Content -Path ('C:\Room Lists\' + ($room) + '.txt') 
+
+        Get-Memory -computers $computers
+
+    }#end foreach
+
+}#end function
+ 
+
+ function Get-Memory {
+    param ($computers)          
+
+    $date = Get-Date -Format dd-MM-yyyy
+
+    Write-Host "Please wait getting details for $room"
+
+    ForEach ($computername in $computers) {  
+    
+      If ($computername -eq ""){
+      }
+
+      Else {
+
+        try {
+       
+            $disk = Get-WmiObject Win32_LogicalDisk -filter "DriveType=3" -computer $computername -ErrorAction Stop | Select @{ Name = "Size(GB)"; Expression = { "{0:N1}" -f ($_.size/1gb) } }, @{ Name = "FreeSpace(GB)"; Expression = { "{0:N1}" -f ($_.freespace/1gb) } }
+    
+            $hdsize = $disk.'Size(GB)'
+            $hdfree = $disk.'FreeSpace(GB)'
+                
+            $colSlots = Get-WmiObject -Class "win32_PhysicalMemoryArray" -namespace "root\CIMV2" -computerName $computername
+            $colRAM = Get-WmiObject -Class "win32_PhysicalMemory" -namespace "root\CIMV2" -computerName $computername
+            $NumSlots = 0
+
+        
+            $colSlots | ForEach {
+                $NumSlots = $_.MemoryDevices
+            }
+
+            $SlotsFilled = 0
+            $TotMemPopulated = 0
+
+
+            $colRAM | ForEach {
+                $SlotsFilled = $SlotsFilled + 1
+                $TotMemPopulated = $TotMemPopulated + ($_.Capacity / 1GB)
+            }
+
+
+            $Filled = If (($NumSlots - $SlotsFilled) -eq 0) {        
+                "NO EMPTY SLOTS AVAILABLE!"
+            }
+
+            $Availible = ($NumSlots - $SlotsFilled)
+
+            $Mem = "$TotMemPopulated"
+            $Avail = "$Availible of $NumSlots"
+            $Used = "$SlotsFilled of $NumSlots"
+            $Space = "$hdfree/$hdsize"
+
+            $Message = "$room `t$computername `t$Mem `t$Avail `t$Used `t$space `t$Filled"
+
+            $Message | out-file ("C:\Reports\PC_Report_" + ($date) + ".csv") -Append
+       
+        } catch {
+            "$computername" | Out-File ("C:\Reports\Log File\" + ($room) + ".txt") -Append
+          }
+      }# end else
+    }# end foreach
+
+}#end function
+
+$flag = $false
+
+    do {
+    cls
+
+    write-host -ForegroundColor Cyan " `n Please choose an option: `n `t `t `t 1. Check Computer Details `n `t `t `t 2. Quit"
+
+    $cmdSelection = Read-Host " `n (1 - 2)"
+
+    switch ($cmdSelection) {
+        1 {Get-Rooms}
+        2 {exit}
+    }
+
+} while (!($flag))
+}
+
+Computer-Details
